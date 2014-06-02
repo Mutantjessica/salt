@@ -34,11 +34,16 @@ class SaltStackVersion(object):
     __slots__ = ('name', 'major', 'minor', 'bugfix', 'rc', 'noc', 'sha')
 
     git_describe_regex = re.compile(
-        r'(?:[^\d]+)?(?P<major>[\d]{1,2})\.(?P<minor>[\d]{1,2})'
+        r'(?:[^\d]+)?(?P<major>[\d]{1,2})\.(?P<minor>[\d]{1,2})*'
         r'(?:\.(?P<bugfix>[\d]{0,2}))?(?:rc(?P<rc>[\d]{1}))?'
         r'(?:(?:.*)-(?P<noc>[\d]+)-(?P<sha>[a-z0-9]{8}))?'
     )
 
+    git_describe_branch_regex = re.compile(
+        r'(?:[^\d]+)?(?P<major>[\d]{1,2})\.(?P<minor>[\d]{1,2})'
+        r'(?:\.(?P<bugfix>[\d]{0,2}))?(?:rc(?P<rc>[\d]{1}))?'
+        r'(?:(?:.*)-(?P<noc>[\d]+)-(?P<sha>[a-z0-9]{8}))?'
+    )
     # Salt versions after 0.17.0 will be numbered like:
     #   <2-digit-year>.<month>.<bugfix>
     #
@@ -210,6 +215,9 @@ class SaltStackVersion(object):
     def parse(cls, version_string):
         if version_string.lower() in cls.LNAMES:
             return cls.from_name(version_string)
+
+        if version_string.startswith('v20'):
+            version_string = version_string[3:]
         match = cls.git_describe_regex.match(version_string)
         if not match:
             raise ValueError(
